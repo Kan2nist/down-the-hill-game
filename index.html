@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Unity Web Player | down-the-hill</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+  </head>
+  <body>
+    <div id="astc-error">
+      <div class="content">
+        <h1>Browser Not Supported</h1>
+        <p>This game requires ASTC texture compression, which is only available on mobile devices.</p>
+        <p>Please open this page in <strong>Chrome on Android</strong> or <strong>Safari on iOS</strong>.</p>
+        <p class="hint">Desktop browsers (Chrome, Firefox, Edge) on Windows/Linux/macOS do not support the required GPU features.</p>
+      </div>
+    </div>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=1920 height=1080 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">down-the-hill</div>
+      </div>
+    </div>
+    <script>
+      // ── ASTC support check ──
+      // ASTC is required: all textures are ASTC-compressed.
+      // Without it, Unity decompresses to RGBA32 → OOM on 256 MB WebGL heap.
+      // Supported: Android Chrome, iOS Safari. Not supported: desktop x86 GPUs.
+      (function() {
+        var c = document.createElement('canvas');
+        var gl = c.getContext('webgl2') || c.getContext('webgl');
+        if (!gl || !gl.getExtension('WEBGL_compressed_texture_astc')) {
+          document.getElementById('astc-error').style.display = 'block';
+          document.getElementById('unity-container').style.display = 'none';
+          throw new Error('ASTC not supported');
+        }
+      })();
+
+      // ── Error handling infrastructure ──
+      // Runs BEFORE Unity loads — catches WASM compilation errors, framework
+      // failures, and runtime errors. No native alert() dialogs — overlay only.
+      // ErrorReporter.jslib's InitErrorReporting() is now a no-op;
+      // ShowErrorFromUnity() uses window._dthShowError set here.
+      (function() {
+        var errorCodes = {
+          'out of memory':        { code: 'E001', title: 'Out of Memory' },
+          'memory access out':    { code: 'E001', title: 'Out of Memory' },
+          'runtimeerror: memory': { code: 'E001', title: 'Out of Memory' },
+          'unreachable':          { code: 'E006', title: 'Runtime Exception' },
+          'cannot enlarge memory':{ code: 'E001', title: 'Out of Memory' },
+          'aborted(oom)':         { code: 'E001', title: 'Out of Memory' },
+          'context lost':         { code: 'E002', title: 'WebGL Context Lost' },
+          'context_lost':         { code: 'E002', title: 'WebGL Context Lost' },
+          'shader':               { code: 'E003', title: 'Shader Error' },
+          'compiling shader':     { code: 'E003', title: 'Shader Error' },
+          'script error':         { code: 'E004', title: 'Script Error' },
+          'abort':                { code: 'E005', title: 'Application Aborted' },
+        };
+
+        function classifyError(msg) {
+          var s = (msg || '').toLowerCase();
+          for (var pattern in errorCodes) {
+            if (s.indexOf(pattern) !== -1) return errorCodes[pattern];
+          }
+          return { code: 'E999', title: 'Unknown Error' };
+        }
+
+        function showOverlay(code, title, detail) {
+          if (document.getElementById('dth-error-overlay')) return;
+          var overlay = document.createElement('div');
+          overlay.id = 'dth-error-overlay';
+          overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);' +
+            'display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;';
+          overlay.innerHTML =
+            '<div style="background:#1a1a2e;border:2px solid #e94560;border-radius:12px;' +
+            'padding:32px;max-width:480px;width:90%;color:#eee;text-align:center;">' +
+            '<h2 style="color:#e94560;margin:0 0 8px;">Error ' + code + '</h2>' +
+            '<h3 style="margin:0 0 16px;color:#fff;">' + title + '</h3>' +
+            '<p style="color:#aaa;font-size:14px;margin:0 0 24px;word-break:break-word;">' + detail + '</p>' +
+            '<button onclick="location.reload()" style="background:#e94560;color:#fff;border:none;' +
+            'padding:12px 32px;border-radius:8px;font-size:16px;cursor:pointer;">Reload</button>' +
+            '</div>';
+          document.body.appendChild(overlay);
+        }
+
+        // Expose globally for ErrorReporter.jslib (ShowErrorFromUnity)
+        window._dthShowError = showOverlay;
+        window._dthClassifyError = classifyError;
+
+        // Global error handlers
+        window.onerror = function(msg, url, line, col, error) {
+          var info = classifyError(msg);
+          showOverlay(info.code, info.title, msg);
+        };
+
+        window.addEventListener('unhandledrejection', function(e) {
+          var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Promise rejected';
+          var info = classifyError(msg);
+          showOverlay(info.code, info.title, msg);
+        });
+
+        // WebGL context loss — auto-reload with anti-loop protection
+        var _contextLost = false;
+        function safeReload() {
+          try {
+            var key = 'dth_ctx_reload';
+            var now = Date.now();
+            var last = parseInt(localStorage.getItem(key) || '0', 10);
+            if (now - last < 10000) {
+              showOverlay('E002', 'WebGL Context Lost',
+                'Graphics could not be restored. Please reload the page.');
+              return;
+            }
+            localStorage.setItem(key, String(now));
+          } catch(e) {}
+          location.reload();
+        }
+
+        var canvas = document.querySelector('#unity-canvas');
+        canvas.addEventListener('webglcontextlost', function(e) {
+          e.preventDefault();
+          _contextLost = true;
+          if (document.visibilityState === 'visible') safeReload();
+        });
+
+        document.addEventListener('visibilitychange', function() {
+          if (document.visibilityState !== 'visible') return;
+          if (_contextLost) { safeReload(); return; }
+          try {
+            var gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+            if (gl && gl.isContextLost()) safeReload();
+          } catch(e) {}
+        });
+      })();
+
+      var canvas = document.querySelector("#unity-canvas");
+
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/down-the-hill-game.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/down-the-hill-game.data.unityweb",
+        frameworkUrl: buildUrl + "/down-the-hill-game.framework.js.unityweb",
+        codeUrl: buildUrl + "/down-the-hill-game.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "down-the-hill",
+        productVersion: "0.1.0",
+        showBanner: unityShowBanner,
+        // Device pixel ratio strategy:
+        // - Mobile: use native DPR (no cap). Phones rely on DPR 2-3 to reach
+        //   native screen resolution; capping below DPR 2 means rendering at
+        //   33-50% of physical pixels and gives a soft/blurry image. The
+        //   typical mobile framebuffer (~360x800 CSS × DPR 3 = 1080x2400)
+        //   costs ~10 MB color RT — heap is not the issue.
+        // - Desktop (Mac retina with Apple Silicon, the only x86-free desktop
+        //   path past the ASTC check): cap at 1.5. Without this, 1411x880 CSS
+        //   × DPR 2 = 2822x1760 = ~20 MB color RT, ~60 MB total with depth +
+        //   history targets.
+        devicePixelRatio: (function() {
+          var dpr = window.devicePixelRatio || 1;
+          var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+          return isMobile ? dpr : Math.min(dpr, 1.5);
+        })(),
+      };
+
+      // ── Render-target diagnostic ──
+      // Logs the canvas / DPR / backing-store / internal-render-target sizes
+      // so we can verify what Unity is actually rendering at on each device.
+      // Also pins a short overlay on screen so we can read it on mobile
+      // without remote DevTools. URP renderScale is hard-coded here (1.0 on
+      // both Mobile_RPAsset.asset and PC_RPAsset.asset) — keep in sync if it
+      // ever changes.
+      (function() {
+        function dumpRenderInfo(stage) {
+          var dpr = config.devicePixelRatio;
+          var w = window.innerWidth, h = window.innerHeight;
+          var bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+          var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+          var rs = 1.0; // URP renderScale, see RPAssets
+          var rw = Math.round(bw * rs), rh = Math.round(bh * rs);
+          var nativeDpr = window.devicePixelRatio || 1;
+          var info = {
+            stage: stage,
+            css: w + 'x' + h,
+            nativeDpr: nativeDpr,
+            usedDpr: dpr,
+            backingStore: bw + 'x' + bh,
+            renderScale: rs,
+            internalRT: rw + 'x' + rh,
+            colorRtMB: ((rw * rh * 4) / 1048576).toFixed(2),
+            isMobile: isMobile
+          };
+          console.log('[RENDER-INFO]', info);
+          window._dthRenderInfo = info;
+
+          // On-screen overlay (auto-hide after 10s) so we can read this on a
+          // phone without remote DevTools. Only on first call.
+          if (stage === 'load' && !document.getElementById('dth-render-info')) {
+            var box = document.createElement('div');
+            box.id = 'dth-render-info';
+            box.style.cssText = 'position:fixed;top:8px;left:8px;z-index:99998;' +
+              'background:rgba(0,0,0,0.75);color:#0f0;font:11px/1.4 monospace;' +
+              'padding:8px 10px;border-radius:6px;pointer-events:none;max-width:90vw;';
+            box.innerHTML =
+              'CSS ' + info.css + ' · DPR ' + info.nativeDpr + (info.usedDpr !== info.nativeDpr ? '→' + info.usedDpr : '') + '<br>' +
+              'Backing ' + info.backingStore + ' · RS ' + info.renderScale + '<br>' +
+              'Internal ' + info.internalRT + ' (' + info.colorRtMB + ' MB)';
+            document.body.appendChild(box);
+            setTimeout(function() {
+              if (box.parentNode) box.parentNode.removeChild(box);
+            }, 10000);
+          }
+        }
+        dumpRenderInfo('load');
+        window.addEventListener('resize', function() { dumpRenderInfo('resize'); });
+      })();
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        // ── Mobile gesture prevention ──
+        // Block long-press context menu on canvas (Android Chrome, iOS Safari)
+        canvas.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Block iOS pinch zoom (Safari 14+ ignores user-scalable=no)
+        document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+        document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
+
+
+      } else {
+        canvas.style.width = "1920px";
+        canvas.style.height = "1080px";
+      }
+
+      document.querySelector("#unity-loading-bar").style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                document.querySelector("#unity-loading-bar").style.display = "none";
+                document.querySelector("#unity-fullscreen-button").onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+
+              }).catch((message) => {
+                var info = window._dthClassifyError(String(message));
+                window._dthShowError(info.code, info.title, String(message));
+              });
+            };
+
+      document.body.appendChild(script);
+
+    </script>
+  </body>
+</html>
