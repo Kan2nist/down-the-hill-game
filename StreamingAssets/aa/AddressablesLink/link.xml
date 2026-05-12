@@ -29,23 +29,31 @@
     <type fullname="Gameplay.Vehicle.Data.VehicleData" preserve="all" />
     <type fullname="Gameplay.Vehicle.Data.VehicleDatabase" preserve="all" />
     <type fullname="Gameplay.Vehicle.Data.VehicleItem" preserve="all" />
+    <type fullname="Gameplay.Vehicle.Data.VehiclePhotoCatalog" preserve="all" />
     <type fullname="Gameplay.Vehicle.Data.VehicleSkinDefinition" preserve="all" />
+    <type fullname="Gameplay.Vehicle.VehicleBodyTinter" preserve="all" />
     <type fullname="Garage.CarShopTrigger" preserve="all" />
+    <type fullname="Garage.DailyQuestTrigger" preserve="all" />
+    <type fullname="Garage.EngineUpgradeTrigger" preserve="all" />
     <type fullname="Garage.GarageLeaderboardBillboard" preserve="all" />
     <type fullname="Garage.GarageSceneTrigger" preserve="all" />
     <type fullname="Garage.GarageVehicleSpawner" preserve="all" />
+    <type fullname="Garage.Indicators.IndicatorIcon" preserve="all" />
+    <type fullname="Garage.Indicators.IndicatorZoneHighlight" preserve="all" />
     <type fullname="Garage.LootBoxWorkbench" preserve="all" />
     <type fullname="Garage.MirrorDanceDisplay" preserve="all" />
     <type fullname="Garage.MirrorTrigger" preserve="all" />
+    <type fullname="Garage.QuestNpcAnchor" preserve="all" />
     <type fullname="Garage.TuningTrigger" preserve="all" />
+    <type fullname="Garage.TutorialGate" preserve="all" />
     <type fullname="Garage.WardrobePreviewCharacter" preserve="all" />
     <type fullname="Optimization.InstancedRenderable" preserve="all" />
-    <type fullname="UI.CarShopUI" preserve="all" />
     <type fullname="UI.Leaderboard.LeaderboardNicknamePool" preserve="all" />
     <type fullname="UI.Leaderboard.LeaderboardPlaceCurve" preserve="all" />
-    <type fullname="UI.WardrobeUI" preserve="all" />
-    <type fullname="Core.SceneLoading.PrefabLightmapData/RendererInfo" preserve="nothing" serialized="true" />
+    <type fullname="UI.Menus.MenuRouter" preserve="all" />
+    <type fullname="UI.Menus.MenuShell" preserve="all" />
     <type fullname="Gameplay.Vehicle.Data.DamagePartDef" preserve="nothing" serialized="true" />
+    <type fullname="Core.SceneLoading.PrefabLightmapData/RendererInfo" preserve="nothing" serialized="true" />
     <type fullname="Gameplay.Environment.LaneWaypoint" preserve="nothing" serialized="true" />
     <type fullname="Gameplay.Environment.LaneWaypointSet" preserve="nothing" serialized="true" />
     <type fullname="Core.SceneLoading.SectorLightmapData/PathRendererInfo" preserve="nothing" serialized="true" />
@@ -54,6 +62,16 @@
     <type fullname="Gameplay.Data.GroupSlot" preserve="nothing" serialized="true" />
     <type fullname="Gameplay.Data.TrampolineOverride" preserve="nothing" serialized="true" />
     <type fullname="Gameplay.Data.TrapPlacement" preserve="nothing" serialized="true" />
+    <type fullname="Gameplay.Vehicle.Data.VehicleSkinSwatch" preserve="nothing" serialized="true" />
+  </assembly>
+  <assembly fullname="DownTheHill.Bots, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="Gameplay.Vehicle.BotDecorRarityDist" preserve="all" />
+    <type fullname="Gameplay.Vehicle.BotVehiclePool" preserve="all" />
+    <type fullname="Gameplay.Vehicle.Data.RaceModeConfig" preserve="all" />
+    <type fullname="Gameplay.Vehicle.BotDecorRarityDist/BucketRow" preserve="nothing" serialized="true" />
+    <type fullname="Gameplay.Vehicle.BotVehiclePool/BucketRow" preserve="nothing" serialized="true" />
+    <type fullname="Gameplay.Vehicle.BotVehiclePool/VehicleEntry" preserve="nothing" serialized="true" />
+    <type fullname="Gameplay.Vehicle.Data.RaceModeConfig/ModeEntry" preserve="nothing" serialized="true" />
   </assembly>
   <assembly fullname="Unity.Addressables, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" preserve="all">
     <type fullname="UnityEngine.AddressableAssets.Addressables" preserve="all" />
@@ -135,6 +153,7 @@
     <type fullname="UnityEngine.Shader" preserve="all" />
     <type fullname="UnityEngine.SkinnedMeshRenderer" preserve="all" />
     <type fullname="UnityEngine.Sprite" preserve="all" />
+    <type fullname="UnityEngine.SpriteRenderer" preserve="all" />
     <type fullname="UnityEngine.Texture2D" preserve="all" />
     <type fullname="UnityEngine.Texture2DArray" preserve="all" />
     <type fullname="UnityEngine.Transform" preserve="all" />
