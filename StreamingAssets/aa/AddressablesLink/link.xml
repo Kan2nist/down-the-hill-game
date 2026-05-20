@@ -12,7 +12,9 @@
     <type fullname="Gameplay.Environment.DestroyerImpact" preserve="all" />
     <type fullname="Gameplay.Environment.DestructibleBox" preserve="all" />
     <type fullname="Gameplay.Environment.DestructibleMarker" preserve="all" />
+    <type fullname="Gameplay.Environment.ExplosiveBarrelTrap" preserve="all" />
     <type fullname="Gameplay.Environment.HammerAnimator" preserve="all" />
+    <type fullname="Gameplay.Environment.MassiveBlockTrap" preserve="all" />
     <type fullname="Gameplay.Environment.OrbitAnimator" preserve="all" />
     <type fullname="Gameplay.Environment.PrizeLootBox" preserve="all" />
     <type fullname="Gameplay.Environment.Rotator" preserve="all" />
@@ -21,6 +23,7 @@
     <type fullname="Gameplay.Environment.TrackConfig" preserve="all" />
     <type fullname="Gameplay.Environment.TrapComponent" preserve="all" />
     <type fullname="Gameplay.Environment.TrapVariantPicker" preserve="all" />
+    <type fullname="Gameplay.Environment.TrapVariantPool" preserve="all" />
     <type fullname="Gameplay.Vehicle.Audio.VehicleAudioProfile" preserve="all" />
     <type fullname="Gameplay.Vehicle.BotNameplate" preserve="all" />
     <type fullname="Gameplay.Vehicle.BotNameplateConfig" preserve="all" />
@@ -52,8 +55,8 @@
     <type fullname="UI.Leaderboard.LeaderboardPlaceCurve" preserve="all" />
     <type fullname="UI.Menus.MenuRouter" preserve="all" />
     <type fullname="UI.Menus.MenuShell" preserve="all" />
-    <type fullname="Gameplay.Vehicle.Data.DamagePartDef" preserve="nothing" serialized="true" />
     <type fullname="Core.SceneLoading.PrefabLightmapData/RendererInfo" preserve="nothing" serialized="true" />
+    <type fullname="Gameplay.Vehicle.Data.DamagePartDef" preserve="nothing" serialized="true" />
     <type fullname="Gameplay.Environment.LaneWaypoint" preserve="nothing" serialized="true" />
     <type fullname="Gameplay.Environment.LaneWaypointSet" preserve="nothing" serialized="true" />
     <type fullname="Core.SceneLoading.SectorLightmapData/PathRendererInfo" preserve="nothing" serialized="true" />
@@ -144,6 +147,7 @@
     <type fullname="UnityEngine.Light" preserve="all" />
     <type fullname="UnityEngine.LightProbeGroup" preserve="all" />
     <type fullname="UnityEngine.LightProbes" preserve="all" />
+    <type fullname="UnityEngine.LODGroup" preserve="all" />
     <type fullname="UnityEngine.Material" preserve="all" />
     <type fullname="UnityEngine.Mesh" preserve="all" />
     <type fullname="UnityEngine.MeshFilter" preserve="all" />
@@ -169,6 +173,7 @@
     <type fullname="UnityEngine.BoxCollider" preserve="all" />
     <type fullname="UnityEngine.MeshCollider" preserve="all" />
     <type fullname="UnityEngine.Rigidbody" preserve="all" />
+    <type fullname="UnityEngine.SphereCollider" preserve="all" />
   </assembly>
   <assembly fullname="UnityEngine.TextCoreTextEngineModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
     <type fullname="UnityEngine.TextCore.Text.FontAsset" preserve="all" />
