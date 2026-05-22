@@ -16,7 +16,6 @@
     <type fullname="Gameplay.Environment.HammerAnimator" preserve="all" />
     <type fullname="Gameplay.Environment.MassiveBlockTrap" preserve="all" />
     <type fullname="Gameplay.Environment.OrbitAnimator" preserve="all" />
-    <type fullname="Gameplay.Environment.PrizeLootBox" preserve="all" />
     <type fullname="Gameplay.Environment.Rotator" preserve="all" />
     <type fullname="Gameplay.Environment.SectorGameplayData" preserve="all" />
     <type fullname="Gameplay.Environment.SoftObstaclePhysics" preserve="all" />
@@ -24,6 +23,7 @@
     <type fullname="Gameplay.Environment.TrapComponent" preserve="all" />
     <type fullname="Gameplay.Environment.TrapVariantPicker" preserve="all" />
     <type fullname="Gameplay.Environment.TrapVariantPool" preserve="all" />
+    <type fullname="Gameplay.Race.SkyboxPool" preserve="all" />
     <type fullname="Gameplay.Vehicle.Audio.VehicleAudioProfile" preserve="all" />
     <type fullname="Gameplay.Vehicle.BotNameplate" preserve="all" />
     <type fullname="Gameplay.Vehicle.BotNameplateConfig" preserve="all" />
@@ -56,6 +56,7 @@
     <type fullname="UI.Menus.MenuRouter" preserve="all" />
     <type fullname="UI.Menus.MenuShell" preserve="all" />
     <type fullname="Core.SceneLoading.PrefabLightmapData/RendererInfo" preserve="nothing" serialized="true" />
+    <type fullname="Gameplay.Race.SkyboxPool/SkyboxEntry" preserve="nothing" serialized="true" />
     <type fullname="Gameplay.Vehicle.Data.DamagePartDef" preserve="nothing" serialized="true" />
     <type fullname="Gameplay.Environment.LaneWaypoint" preserve="nothing" serialized="true" />
     <type fullname="Gameplay.Environment.LaneWaypointSet" preserve="nothing" serialized="true" />
