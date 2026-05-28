@@ -13,12 +13,15 @@
     <link rel="stylesheet" href="TemplateData/style.css">
   </head>
   <body>
-    <div id="astc-error">
+    <div id="compat-error">
       <div class="content">
         <h1>Browser Not Supported</h1>
-        <p>This game requires ASTC texture compression, which is only available on mobile devices.</p>
-        <p>Please open this page in <strong>Chrome on Android</strong> or <strong>Safari on iOS</strong>.</p>
-        <p class="hint">Desktop browsers (Chrome, Firefox, Edge) on Windows/Linux/macOS do not support the required GPU features.</p>
+        <p>This game requires WebGL 2.0 with either ASTC or DXT texture compression.</p>
+        <p>Please open this page in a recent version of <strong>Google Chrome</strong>, <strong>Edge</strong>, <strong>Safari</strong>, or <strong>Firefox</strong>.</p>
+        <hr>
+        <h1>Браузер не поддерживается</h1>
+        <p>Игра требует WebGL 2.0 с поддержкой ASTC или DXT-сжатия текстур.</p>
+        <p>Откройте страницу в современной версии <strong>Google Chrome</strong>, <strong>Edge</strong>, <strong>Safari</strong> или <strong>Firefox</strong>.</p>
       </div>
     </div>
     <div id="unity-container" class="unity-desktop">
@@ -37,17 +40,32 @@
       </div>
     </div>
     <script>
-      // ── ASTC support check ──
-      // ASTC is required: all textures are ASTC-compressed.
-      // Without it, Unity decompresses to RGBA32 → OOM on 256 MB WebGL heap.
-      // Supported: Android Chrome, iOS Safari. Not supported: desktop x86 GPUs.
+      // ── Texture-format detection: pick the matching build variant ──
+      // ASTC variant = mobile GPUs (Android Chrome, iOS Safari, Mac Metal).
+      // DXT variant  = desktop ANGLE→D3D11 (Chrome/Edge/Firefox on Windows).
+      // Each variant ships hardware-native textures, so there is no RGBA32
+      // software decompress → no OOM on the WebGL heap.
       (function() {
         var c = document.createElement('canvas');
         var gl = c.getContext('webgl2') || c.getContext('webgl');
-        if (!gl || !gl.getExtension('WEBGL_compressed_texture_astc')) {
-          document.getElementById('astc-error').style.display = 'block';
+
+        var astcSupported = !!(gl && gl.getExtension('WEBGL_compressed_texture_astc'));
+        var dxtSupported = !!(gl && (
+          gl.getExtension('WEBGL_compressed_texture_s3tc') ||
+          gl.getExtension('WEBGL_compressed_texture_s3tc_srgb')
+        ));
+
+        if (astcSupported) {
+          window._dthBuildVariant = 'astc';
+        } else if (dxtSupported) {
+          window._dthBuildVariant = 'dxt';
+        } else {
+          document.getElementById('compat-error').style.display = 'block';
           document.getElementById('unity-container').style.display = 'none';
-          throw new Error('ASTC not supported');
+          // NOT throw: the global window.onerror handler is registered later,
+          // so a throw here escapes uncaught. return keeps it robust if the
+          // script blocks are ever reordered.
+          return;
         }
       })();
 
@@ -169,17 +187,18 @@
         updateBannerVisibility();
       }
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/down-the-hill-game.loader.js";
+      var buildUrl = "Build";                                  // shared player binaries (loader/framework/wasm)
+      var contentUrl = window._dthBuildVariant + "/Build";     // variant-specific .data ("astc/Build" | "dxt/Build")
+      var loaderUrl = buildUrl + "/WebGL.loader.js";
       var config = {
         arguments: [],
         // Auto-sync persistentDataPath on file modification — replaces the
         // deprecated manual JS_FileSystem_Sync() flush path (Unity 6.x).
         autoSyncPersistentDataPath: true,
-        dataUrl: buildUrl + "/down-the-hill-game.data.unityweb",
-        frameworkUrl: buildUrl + "/down-the-hill-game.framework.js.unityweb",
-        codeUrl: buildUrl + "/down-the-hill-game.wasm.unityweb",
-        streamingAssetsUrl: "StreamingAssets",
+        dataUrl: contentUrl + "/WebGL.data.unityweb",
+        frameworkUrl: buildUrl + "/WebGL.framework.js.unityweb",
+        codeUrl: buildUrl + "/WebGL.wasm.unityweb",
+        streamingAssetsUrl: window._dthBuildVariant + "/StreamingAssets",
         companyName: "DefaultCompany",
         productName: "down-the-hill",
         productVersion: "0.1.0",

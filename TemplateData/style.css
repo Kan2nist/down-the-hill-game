@@ -16,7 +16,7 @@ body { padding: 0; margin: 0; overflow: hidden; background: #1a1a2e }
 #unity-fullscreen-button { cursor:pointer; float: right; width: 38px; height: 38px; background: url('fullscreen-button.png') no-repeat center }
 #unity-warning { position: absolute; left: 50%; top: 5%; transform: translate(-50%); background: white; padding: 10px; display: none }
 
-#astc-error {
+#compat-error {
   display: none;
   position: fixed;
   inset: 0;
@@ -26,7 +26,7 @@ body { padding: 0; margin: 0; overflow: hidden; background: #1a1a2e }
   text-align: center;
   z-index: 9999;
 }
-#astc-error .content {
+#compat-error .content {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -34,18 +34,23 @@ body { padding: 0; margin: 0; overflow: hidden; background: #1a1a2e }
   max-width: 480px;
   padding: 40px 32px;
 }
-#astc-error h1 {
+#compat-error h1 {
   font-size: 28px;
   color: #ff6b6b;
   margin: 0 0 16px;
 }
-#astc-error p {
+#compat-error p {
   font-size: 16px;
   line-height: 1.6;
   margin: 0 0 12px;
   color: #b0b0c0;
 }
-#astc-error .hint {
+#compat-error hr {
+  border: 0;
+  border-top: 1px solid #4a4a5e;
+  margin: 24px 0;
+}
+#compat-error .hint {
   font-size: 14px;
   color: #707088;
   margin-top: 24px;
